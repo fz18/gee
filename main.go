@@ -1,14 +1,24 @@
 package main
 
 import (
-	"example/gee"
 	"fmt"
-	"log"
+	"gee"
 	"net/http"
 )
 
 func main() {
 	fmt.Println("hello world")
-	engine := new(gee.Engine)
-	log.Fatal(http.ListenAndServe(":9999", engine))
+	r := gee.New()
+	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, "URL.Path = %s\n", req.URL.Path)
+	})
+	r.Get("/hello", func(w http.ResponseWriter, req *http.Request) {
+		for k, v := range req.Header {
+			fmt.Fprintf(w, "Header[%q] = %q\n", k, v)
+		}
+	})
+	err := r.Run(":9999")
+	if err != nil {
+		fmt.Println(err)
+	}
 }
