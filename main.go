@@ -9,14 +9,19 @@ import (
 func main() {
 	fmt.Println("hello world")
 	r := gee.New()
-	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "URL.Path = %s\n", req.URL.Path)
+	r.Get("/", func(c *gee.Context) {
+		c.Html(http.StatusOK, "<h1>Hello Gee<h1>")
 	})
-	r.Get("/hello", func(w http.ResponseWriter, req *http.Request) {
-		for k, v := range req.Header {
-			fmt.Fprintf(w, "Header[%q] = %q\n", k, v)
-		}
+	r.Get("/hello", func(c *gee.Context) {
+		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
 	})
+	r.Post("/login", func(c *gee.Context) {
+		c.Json(http.StatusOK, gee.H{
+			"username": c.PostForm("username"),
+			"password": c.PostForm("password"),
+		})
+	})
+
 	err := r.Run(":9999")
 	if err != nil {
 		fmt.Println(err)
