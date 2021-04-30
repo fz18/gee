@@ -3,6 +3,7 @@ package gee
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 // HandleFunc defines the request handler by gee
@@ -45,7 +46,15 @@ func (e *Engine) Run(addr string) (err error) {
 }
 
 func (e *Engine) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// 找符合规则的中间件
+	var middlewares []HandleFunc
+	for _, group := range e.groups {
+		if strings.HasPrefix(r.URL.Path, group.prefix) {
+			middlewares = append(middlewares, group.middlewares...)
+		}
+	}
 	c := newContext(w, r)
+	c.handlers = middlewares
 	e.router.handle(c)
 }
 
@@ -66,4 +75,8 @@ func (group *RouterGroup) addRouter(method, comp string, handler HandleFunc)  {
 	pattern := group.prefix + comp
 	log.Printf("Route %4s - %s", method, pattern)
 	group.engine.router.addRouter(method, pattern, handler)		
+}
+
+func (group *RouterGroup) Use(middlewares ...HandleFunc)  {
+	group.middlewares = append(group.middlewares, middlewares...)
 }

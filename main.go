@@ -9,8 +9,14 @@ import (
 func main() {
 	fmt.Println("hello world")
 	r := gee.New()
+	r.Use(gee.Logger())
+	r.Use(gee.Recovery())
 	r.Get("/index", func(c *gee.Context) {
 		c.Html(http.StatusOK, "<h1>Hello Gee<h1>")
+	})
+	r.Get("/panic", func(c *gee.Context) {
+		names := []string{"hello"}
+		c.String(http.StatusOK, names[100])
 	})
 	v1 := r.Group("/v1")
 	{
